@@ -744,8 +744,10 @@ class TestEndToEnd(unittest.TestCase):
         result = self.cp._agent_runs()
         self.assertIsInstance(result, str)
         if "No runs" not in result:
-            self.assertIn("Run ID", result)
+            # _agent_runs() renders a table headed "| Run | Mode | Slug | Status | Started |"
+            self.assertIn("Run", result)
             self.assertIn("Mode", result)
+            self.assertIn("Slug", result)
 
     def test_report_returns_markdown(self):
         result = self.cp._agent_report({})

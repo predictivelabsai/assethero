@@ -73,6 +73,8 @@ py-modules = ["cli", "web_app", "agui_app"]
 
 [tool.setuptools.packages.find]
 include = [
+    "engine",
+    "engine.*",
     "tui",
     "tui.*",
     "utils",
