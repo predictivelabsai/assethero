@@ -96,3 +96,19 @@ MAIN_NAV = [
         ("intraday_exit:true", "intraday TP/SL exits"),
     ]),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Per-vertical agent shortcuts (composer pills). Verticals register their own
+# SHORTCUTS at app startup via register_shortcuts(); equities is the default.
+# ---------------------------------------------------------------------------
+VERTICAL_SHORTCUTS: dict = {"equities": AGENT_SHORTCUTS}
+
+
+def register_shortcuts(vertical: str, shortcuts) -> None:
+    if shortcuts:
+        VERTICAL_SHORTCUTS[vertical] = shortcuts
+
+
+def shortcuts_for(vertical: str):
+    return VERTICAL_SHORTCUTS.get(vertical, AGENT_SHORTCUTS)

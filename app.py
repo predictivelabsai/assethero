@@ -271,18 +271,38 @@ def _make_stub(vertical, label):
     return handler
 
 
-for _v, _l in [("crypto", "Crypto"), ("fx", "FX / Macro"),
-               ("prediction", "Prediction"), ("research", "Research")]:
-    rt(f"/{_v}")(_make_stub(_v, _l))
-
-
 # ---------------------------------------------------------- admin / integrations
 from engine.web import admin as _admin  # noqa: E402
+from engine.web import layout as _layout  # noqa: E402
+from engine.web import commands as _commands  # noqa: E402
 _admin.register(app, rt, current_user)
 
 
-# --------------------------------------------------------------- equities vertical
+# --------------------------------------------------------------- verticals
 equities.register(app, rt, current_user)
+
+
+def _register_vertical(key, module_path):
+    """Import + register a vertical, enable its switcher pill and shortcuts.
+    Resilient: a broken vertical degrades to a 'soon' stub instead of crashing boot."""
+    try:
+        import importlib
+        mod = importlib.import_module(module_path)
+        mod.register(app, rt, current_user)
+        _layout.enable_vertical(key)
+        _commands.register_shortcuts(key, getattr(mod, "SHORTCUTS", None))
+    except Exception as e:  # noqa: BLE001
+        import logging
+        logging.getLogger(__name__).warning("vertical %s unavailable: %s", key, e)
+
+
+for _v, _mod in [("crypto", "verticals.crypto.routes"),
+                 ("prediction", "verticals.prediction.routes"),
+                 ("fx", "verticals.fx.routes")]:
+    _register_vertical(_v, _mod)
+
+# Research stays a stub until its merge phase.
+rt("/research")(_make_stub("research", "Research"))
 
 
 if __name__ == "__main__":

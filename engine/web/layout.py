@@ -279,9 +279,18 @@ document.addEventListener('DOMContentLoaded',function(){ahEnsure();ahRender();ah
 """
 
 
+# Verticals whose routes registered successfully (drives which pills are live).
+ENABLED_VERTICALS = {k for k, _l, _i, _h, en in ASSET_CLASSES if en}
+
+
+def enable_vertical(key: str) -> None:
+    ENABLED_VERTICALS.add(key)
+
+
 def switcher(active: str):
     pills = []
-    for key, label, icon, href, enabled in ASSET_CLASSES:
+    for key, label, icon, href, _static_enabled in ASSET_CLASSES:
+        enabled = key in ENABLED_VERTICALS
         cls = "pill" + (" active" if key == active else "") + ("" if enabled else " disabled")
         inner = [Span(icon), Span(label)]
         if not enabled:
@@ -340,11 +349,12 @@ def left_pane(active_vertical: str, nav_items, active_nav: str):
     )
 
 
-def _shortcut_bar():
-    """Agent-shortcut pills shown below the chat input; each opens its command list."""
-    from engine.web.commands import AGENT_SHORTCUTS
+def _shortcut_bar(active_vertical: str = "equities"):
+    """Agent-shortcut pills shown below the chat input; each opens its command list.
+    Shows the active vertical's shortcuts (falls back to equities)."""
+    from engine.web.commands import shortcuts_for
     pills = []
-    for name, items in AGENT_SHORTCUTS:
+    for name, items in shortcuts_for(active_vertical):
         menu = Div(*[Button(cmd, type="button", title=desc, onclick=f"fillChat({cmd!r})")
                      for cmd, desc in items], cls="shmenu")
         pills.append(Div(
@@ -371,7 +381,7 @@ def chat_pane(active_vertical: str, chat_title: str = "AI Assistant"):
                 Button("Send", type="button", cls="chatsend", onclick="ahSend()"),
                 cls="chatform", onsubmit="return false;",
             ),
-            _shortcut_bar(),
+            _shortcut_bar(active_vertical),
             cls="composer",
         ),
         cls="chatpane",
