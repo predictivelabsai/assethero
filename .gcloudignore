@@ -1,0 +1,22 @@
+# Keep the Cloud Build upload small & fast.
+.git/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+node_modules/
+data/
+screenshots/
+*.png
+*.gif
+.playwright-mcp/
+tests/
+docs/
+.env
+.env.*
+*.log
+.DS_Store
