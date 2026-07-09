@@ -362,7 +362,7 @@ class CommandProcessor:
                         bind["user_id"] = self.user_id
                     where_sql = " WHERE " + " AND ".join(where) if where else ""
                     row = session.execute(
-                        text(f"SELECT run_id FROM alpatrade.runs{where_sql} ORDER BY created_at DESC LIMIT 1"),
+                        text(f"SELECT run_id FROM assethero.runs{where_sql} ORDER BY created_at DESC LIMIT 1"),
                         bind,
                     ).fetchone()
                     if not row:
@@ -370,7 +370,7 @@ class CommandProcessor:
                     full_rid = str(row[0])
                 elif len(rid) < 36:
                     row = session.execute(
-                        text("SELECT run_id FROM alpatrade.runs WHERE CAST(run_id AS TEXT) LIKE :prefix ORDER BY created_at DESC LIMIT 1"),
+                        text("SELECT run_id FROM assethero.runs WHERE CAST(run_id AS TEXT) LIKE :prefix ORDER BY created_at DESC LIMIT 1"),
                         {"prefix": f"{rid}%"},
                     ).fetchone()
                     if not row:
@@ -379,7 +379,7 @@ class CommandProcessor:
 
                 # Get initial_capital from runs.config JSONB
                 run_row = session.execute(
-                    text("SELECT config FROM alpatrade.runs WHERE run_id = :rid"),
+                    text("SELECT config FROM assethero.runs WHERE run_id = :rid"),
                     {"rid": full_rid},
                 ).fetchone()
                 initial_capital = 10000.0
@@ -391,7 +391,7 @@ class CommandProcessor:
                 trades = session.execute(
                     text("""
                         SELECT exit_time, capital_after
-                        FROM alpatrade.trades
+                        FROM assethero.trades
                         WHERE run_id = :rid AND exit_time IS NOT NULL AND capital_after IS NOT NULL
                         ORDER BY exit_time ASC
                     """),
@@ -1369,7 +1369,7 @@ Plotly.newPlot('chart', [trace1], {{
     # ------------------------------------------------------------------
 
     def _agent_runs(self, trade_type: Optional[str] = None, params: Optional[Dict] = None) -> str:
-        """List recent runs from alpatrade.runs."""
+        """List recent runs from assethero.runs."""
         params = params or {}
         try:
             from utils.db.db_pool import DatabasePool
@@ -1380,7 +1380,7 @@ Plotly.newPlot('chart', [trace1], {{
                 sql = """
                     SELECT run_id, mode, strategy, status, started_at, completed_at,
                            strategy_slug
-                    FROM alpatrade.runs
+                    FROM assethero.runs
                 """
                 where_clauses = []
                 bind = {}
@@ -1418,7 +1418,7 @@ Plotly.newPlot('chart', [trace1], {{
     # ------------------------------------------------------------------
 
     def _agent_trades(self, params: Dict) -> str:
-        """Query trades from alpatrade.trades.
+        """Query trades from assethero.trades.
 
         Supports: trades [paper|backtest] [slug] [run-id] [limit:N]
         Default: latest run's trades.
@@ -1446,7 +1446,7 @@ Plotly.newPlot('chart', [trace1], {{
                     latest = session.execute(
                         text(f"""
                             SELECT run_id, mode, strategy_slug
-                            FROM alpatrade.runs
+                            FROM assethero.runs
                             {user_filter}
                             ORDER BY created_at DESC LIMIT 1
                         """),
@@ -1476,8 +1476,8 @@ Plotly.newPlot('chart', [trace1], {{
                                t.pnl, t.pnl_pct, t.trade_type, t.run_id,
                                t.entry_time, t.exit_time,
                                r.strategy_slug
-                        FROM alpatrade.trades t
-                        LEFT JOIN alpatrade.runs r ON r.run_id = t.run_id
+                        FROM assethero.trades t
+                        LEFT JOIN assethero.runs r ON r.run_id = t.run_id
                         {where_sql}
                         ORDER BY t.created_at DESC
                         LIMIT :lim
@@ -1787,7 +1787,7 @@ Plotly.newPlot('chart', [trace1], {{
                     run_bind["user_id"] = self.user_id
                 user_filter = " AND user_id = :user_id" if self.user_id else ""
                 run_row = session.execute(
-                    text(f"SELECT mode, strategy, status, strategy_slug, run_id FROM alpatrade.runs "
+                    text(f"SELECT mode, strategy, status, strategy_slug, run_id FROM assethero.runs "
                          f"WHERE run_id::text LIKE :run_id{user_filter}"),
                     run_bind,
                 ).fetchone()
@@ -1802,7 +1802,7 @@ Plotly.newPlot('chart', [trace1], {{
                 trades = session.execute(
                     text("SELECT symbol, direction, shares, entry_price, exit_price, "
                          "pnl, pnl_pct, total_fees, exit_time, entry_time "
-                         "FROM alpatrade.trades WHERE run_id = :run_id "
+                         "FROM assethero.trades WHERE run_id = :run_id "
                          "ORDER BY exit_time ASC NULLS LAST"),
                     {"run_id": run_id},
                 ).fetchall()
@@ -1810,7 +1810,7 @@ Plotly.newPlot('chart', [trace1], {{
                 # Get backtest summary metrics if available
                 summary_row = session.execute(
                     text("SELECT sharpe_ratio, total_return, total_pnl, win_rate "
-                         "FROM alpatrade.backtest_summaries "
+                         "FROM assethero.backtest_summaries "
                          "WHERE run_id = :run_id AND is_best = true LIMIT 1"),
                     {"run_id": run_id},
                 ).fetchone()

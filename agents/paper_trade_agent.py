@@ -61,7 +61,7 @@ class PaperTradeAgent:
                 - duration_seconds: int (default 604800 = 1 week)
                 - poll_interval_seconds: int (default 300 = 5 min)
             stop_event: optional threading.Event checked each loop iteration
-            run_id: optional orchestrator run_id (must exist in alpatrade.runs)
+            run_id: optional orchestrator run_id (must exist in assethero.runs)
 
         Returns:
             Dict with session summary
@@ -347,7 +347,7 @@ class PaperTradeAgent:
                     rows = session.execute(
                         text(f"""
                             SELECT DISTINCT ON (symbol) symbol, created_at
-                            FROM alpatrade.trades
+                            FROM assethero.trades
                             WHERE symbol IN ({placeholders})
                               AND direction = 'buy' AND trade_type = 'paper'
                             ORDER BY symbol, created_at DESC

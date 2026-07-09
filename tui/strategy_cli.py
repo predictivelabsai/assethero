@@ -48,7 +48,7 @@ class StrategyCLI:
                 sql = """
                     SELECT symbol, direction, shares, entry_price, exit_price,
                            pnl, pnl_pct, trade_type, run_id
-                    FROM alpatrade.trades
+                    FROM assethero.trades
                 """
                 bind = {}
                 if self.user_id:
@@ -105,7 +105,7 @@ class StrategyCLI:
             with pool.get_session() as session:
                 sql = """
                     SELECT run_id, mode, strategy, status, started_at
-                    FROM alpatrade.runs
+                    FROM assethero.runs
                 """
                 bind = {}
                 if self.user_id:

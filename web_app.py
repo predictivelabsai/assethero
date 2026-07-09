@@ -1388,7 +1388,7 @@ def profile_keys_remove(session, account_id: str = ""):
         with pool.get_session() as db:
             db.execute(
                 text("""
-                    UPDATE alpatrade.user_accounts
+                    UPDATE assethero.user_accounts
                     SET is_active = FALSE, updated_at = NOW()
                     WHERE account_id = :account_id AND user_id = :user_id
                 """),

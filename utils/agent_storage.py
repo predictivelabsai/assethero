@@ -58,7 +58,7 @@ def _py(val):
 def store_run(run_id: str, mode: str, strategy: str = None,
               config: Dict = None, strategy_slug: str = None,
               user_id: Optional[str] = None, account_id: Optional[str] = None):
-    """Insert a new row into alpatrade.runs."""
+    """Insert a new row into assethero.runs."""
     backend = get_storage_backend()
     if backend != "db":
         return
@@ -67,7 +67,7 @@ def store_run(run_id: str, mode: str, strategy: str = None,
     with pool.get_session() as session:
         session.execute(
             text("""
-                INSERT INTO alpatrade.runs
+                INSERT INTO assethero.runs
                     (run_id, mode, strategy, status, config, started_at, strategy_slug, user_id, account_id)
                 VALUES
                     (:run_id, :mode, :strategy, 'running', :config, :started_at, :strategy_slug, :user_id, :account_id)
@@ -97,7 +97,7 @@ def update_run(run_id: str, status: str, results: Dict = None):
     with pool.get_session() as session:
         session.execute(
             text("""
-                UPDATE alpatrade.runs
+                UPDATE assethero.runs
                 SET status = :status,
                     results = :results,
                     completed_at = :completed_at
@@ -175,7 +175,7 @@ def _store_backtest_db(run_id: str, best: Dict, all_results: List[Dict],
 
             session.execute(
                 text("""
-                    INSERT INTO alpatrade.backtest_summaries
+                    INSERT INTO assethero.backtest_summaries
                         (run_id, variation_index, params, total_return, total_pnl,
                          win_rate, total_trades, sharpe_ratio, max_drawdown,
                          annualized_return, is_best, strategy_slug, user_id)
@@ -205,7 +205,7 @@ def _store_backtest_db(run_id: str, best: Dict, all_results: List[Dict],
         if best_slug:
             session.execute(
                 text("""
-                    UPDATE alpatrade.runs
+                    UPDATE assethero.runs
                     SET strategy_slug = :slug
                     WHERE run_id = :run_id
                 """),
@@ -216,7 +216,7 @@ def _store_backtest_db(run_id: str, best: Dict, all_results: List[Dict],
         for t in (trades or []):
             session.execute(
                 text("""
-                    INSERT INTO alpatrade.trades
+                    INSERT INTO assethero.trades
                         (run_id, trade_type, symbol, direction, shares,
                          entry_time, exit_time, entry_price, exit_price,
                          target_price, stop_price, hit_target, hit_stop,
@@ -281,7 +281,7 @@ def _fetch_backtest_trades_db(run_id: str, user_id: Optional[str] = None) -> Lis
     pool = _get_pool()
     with pool.get_session() as session:
         sql = """
-            SELECT * FROM alpatrade.trades
+            SELECT * FROM assethero.trades
             WHERE trade_type = 'backtest' AND run_id = :run_id
         """
         bind = {"run_id": run_id}
@@ -324,7 +324,7 @@ def _store_paper_trade_db(session_id: str, trade: Dict,
     with pool.get_session() as session:
         session.execute(
             text("""
-                INSERT INTO alpatrade.trades
+                INSERT INTO assethero.trades
                     (run_id, trade_type, symbol, direction, shares,
                      entry_time, exit_time, entry_price, exit_price,
                      target_price, stop_price, hit_target, hit_stop,
@@ -390,7 +390,7 @@ def _fetch_paper_trades_db(run_id: str, user_id: Optional[str] = None) -> List[D
     pool = _get_pool()
     with pool.get_session() as session:
         sql = """
-            SELECT * FROM alpatrade.trades
+            SELECT * FROM assethero.trades
             WHERE trade_type = 'paper' AND run_id = :run_id
         """
         bind = {"run_id": run_id}
@@ -409,7 +409,7 @@ def _fetch_paper_trades_db(run_id: str, user_id: Optional[str] = None) -> List[D
 
 def fetch_recent_day_trades(window_days: int = 7,
                             user_id: Optional[str] = None) -> List[Dict]:
-    """Fetch recent same-day round-trips from alpatrade.trades for PDT bootstrap.
+    """Fetch recent same-day round-trips from assethero.trades for PDT bootstrap.
 
     Returns list of {"date": date, "symbol": str} for trades where entry
     and exit occurred on the same calendar day within the last N days.
@@ -422,7 +422,7 @@ def fetch_recent_day_trades(window_days: int = 7,
     with pool.get_session() as session:
         sql = """
             SELECT symbol, DATE(exit_time) as trade_date
-            FROM alpatrade.trades
+            FROM assethero.trades
             WHERE trade_type = 'paper'
               AND exit_time IS NOT NULL
               AND DATE(entry_time) = DATE(exit_time)
@@ -442,7 +442,7 @@ def fetch_recent_day_trades(window_days: int = 7,
 
 def store_validation(run_id: str, result: Dict,
                      user_id: Optional[str] = None):
-    """Store a validation result into alpatrade.validations."""
+    """Store a validation result into assethero.validations."""
     backend = get_storage_backend()
     if backend != "db":
         return
@@ -451,7 +451,7 @@ def store_validation(run_id: str, result: Dict,
     with pool.get_session() as session:
         session.execute(
             text("""
-                INSERT INTO alpatrade.validations
+                INSERT INTO assethero.validations
                     (run_id, source, status, total_checked, anomalies_found,
                      anomalies_corrected, iterations_used, corrections, suggestions,
                      user_id)

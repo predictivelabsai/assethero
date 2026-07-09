@@ -80,7 +80,7 @@ def create_user(
     with pool.get_session() as session:
         result = session.execute(
             text("""
-                INSERT INTO alpatrade.users
+                INSERT INTO assethero.users
                     (email, password_hash, google_id, display_name)
                 VALUES
                     (:email, :pw_hash, :google_id, :display_name)
@@ -109,7 +109,7 @@ def get_user_by_email(email: str) -> Optional[Dict]:
             text("""
                 SELECT user_id, email, password_hash, google_id,
                        display_name, is_admin, is_active, created_at
-                FROM alpatrade.users
+                FROM assethero.users
                 WHERE email = :email AND is_active = TRUE
             """),
             {"email": email.lower().strip()},
@@ -129,7 +129,7 @@ def get_user_by_id(user_id: str) -> Optional[Dict]:
             text("""
                 SELECT user_id, email, password_hash, google_id,
                        display_name, is_admin, is_active, created_at
-                FROM alpatrade.users
+                FROM assethero.users
                 WHERE user_id = :user_id AND is_active = TRUE
             """),
             {"user_id": user_id},
@@ -149,7 +149,7 @@ def get_user_by_google_id(google_id: str) -> Optional[Dict]:
             text("""
                 SELECT user_id, email, password_hash, google_id,
                        display_name, is_admin, is_active, created_at
-                FROM alpatrade.users
+                FROM assethero.users
                 WHERE google_id = :google_id AND is_active = TRUE
             """),
             {"google_id": google_id},
@@ -184,7 +184,7 @@ def link_google_id(email: str, google_id: str) -> bool:
     with pool.get_session() as session:
         result = session.execute(
             text("""
-                UPDATE alpatrade.users
+                UPDATE assethero.users
                 SET google_id = :google_id, updated_at = :now
                 WHERE email = :email AND google_id IS NULL
             """),
@@ -213,7 +213,7 @@ def store_alpaca_keys(user_id: str, api_key: str, secret_key: str, account_name:
         if account_id:
             session.execute(
                 text("""
-                    UPDATE alpatrade.user_accounts
+                    UPDATE assethero.user_accounts
                     SET account_name = :name,
                         alpaca_api_key_enc = :api_enc,
                         alpaca_secret_key_enc = :secret_enc,
@@ -233,7 +233,7 @@ def store_alpaca_keys(user_id: str, api_key: str, secret_key: str, account_name:
         else:
             result = session.execute(
                 text("""
-                    INSERT INTO alpatrade.user_accounts (user_id, account_name, alpaca_api_key_enc, alpaca_secret_key_enc)
+                    INSERT INTO assethero.user_accounts (user_id, account_name, alpaca_api_key_enc, alpaca_secret_key_enc)
                     VALUES (:user_id, :name, :api_enc, :secret_enc)
                     RETURNING account_id
                 """),
@@ -261,7 +261,7 @@ def get_alpaca_keys(user_id: str, account_id: Optional[str] = None) -> Optional[
             result = session.execute(
                 text("""
                     SELECT alpaca_api_key_enc, alpaca_secret_key_enc
-                    FROM alpatrade.user_accounts
+                    FROM assethero.user_accounts
                     WHERE user_id = :user_id AND account_id = :account_id AND is_active = TRUE
                 """),
                 {"user_id": user_id, "account_id": account_id},
@@ -270,7 +270,7 @@ def get_alpaca_keys(user_id: str, account_id: Optional[str] = None) -> Optional[
             result = session.execute(
                 text("""
                     SELECT alpaca_api_key_enc, alpaca_secret_key_enc
-                    FROM alpatrade.user_accounts
+                    FROM assethero.user_accounts
                     WHERE user_id = :user_id AND is_active = TRUE
                     ORDER BY created_at ASC LIMIT 1
                 """),
@@ -296,7 +296,7 @@ def get_user_accounts(user_id: str) -> list[Dict]:
         result = session.execute(
             text("""
                 SELECT account_id, account_name, alpaca_api_key_enc, created_at, is_active
-                FROM alpatrade.user_accounts
+                FROM assethero.user_accounts
                 WHERE user_id = :user_id AND is_active = TRUE
                 ORDER BY created_at ASC
             """),
@@ -346,7 +346,7 @@ def create_password_reset_token(email: str) -> Optional[str]:
     with pool.get_session() as session:
         session.execute(
             text("""
-                INSERT INTO alpatrade.password_reset_tokens (user_id, token, expires_at)
+                INSERT INTO assethero.password_reset_tokens (user_id, token, expires_at)
                 VALUES (:user_id, :token, :expires_at)
             """),
             {
@@ -371,8 +371,8 @@ def verify_and_consume_reset_token(token: str) -> Optional[Dict]:
         result = session.execute(
             text("""
                 SELECT t.user_id, u.email, u.display_name
-                FROM alpatrade.password_reset_tokens t
-                JOIN alpatrade.users u ON u.user_id = t.user_id
+                FROM assethero.password_reset_tokens t
+                JOIN assethero.users u ON u.user_id = t.user_id
                 WHERE t.token = :token
                   AND t.used_at IS NULL
                   AND t.expires_at > :now
@@ -387,7 +387,7 @@ def verify_and_consume_reset_token(token: str) -> Optional[Dict]:
         # Mark token as consumed
         session.execute(
             text("""
-                UPDATE alpatrade.password_reset_tokens
+                UPDATE assethero.password_reset_tokens
                 SET used_at = :now
                 WHERE token = :token
             """),
@@ -405,7 +405,7 @@ def update_password(user_id: str, new_password: str) -> bool:
     with pool.get_session() as session:
         result = session.execute(
             text("""
-                UPDATE alpatrade.users
+                UPDATE assethero.users
                 SET password_hash = :pw_hash, updated_at = :now
                 WHERE user_id = :user_id AND is_active = TRUE
             """),
@@ -426,7 +426,7 @@ def update_display_name(user_id: str, display_name: str) -> bool:
     with pool.get_session() as session:
         result = session.execute(
             text("""
-                UPDATE alpatrade.users
+                UPDATE assethero.users
                 SET display_name = :display_name, updated_at = :now
                 WHERE user_id = :user_id AND is_active = TRUE
             """),
@@ -447,7 +447,7 @@ def has_password(user_id: str) -> bool:
     with pool.get_session() as session:
         row = session.execute(
             text("""
-                SELECT password_hash FROM alpatrade.users
+                SELECT password_hash FROM assethero.users
                 WHERE user_id = :user_id AND is_active = TRUE
             """),
             {"user_id": user_id},

@@ -650,7 +650,7 @@ class TestAuthDB(unittest.TestCase):
         pool = DatabasePool()
         with pool.get_session() as session:
             session.execute(
-                text("DELETE FROM alpatrade.users WHERE email = :email"),
+                text("DELETE FROM assethero.users WHERE email = :email"),
                 {"email": email},
             )
 

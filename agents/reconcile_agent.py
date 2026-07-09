@@ -279,7 +279,7 @@ class ReconcileAgent:
                     params["user_id"] = self.user_id
                 result = session.execute(text(f"""
                     SELECT symbol, SUM(shares) as qty
-                    FROM alpatrade.trades
+                    FROM assethero.trades
                     WHERE trade_type = 'paper'
                       AND direction = 'long'
                       AND exit_price IS NULL
@@ -310,7 +310,7 @@ class ReconcileAgent:
                     text(f"""
                         SELECT symbol, direction, shares, entry_price, exit_price,
                                pnl, trade_type, created_at, order_id
-                        FROM alpatrade.trades
+                        FROM assethero.trades
                         WHERE trade_type = 'paper'
                           AND created_at >= :start
                           AND created_at <= :end
@@ -353,7 +353,7 @@ class ReconcileAgent:
                     params["user_id"] = self.user_id
                 result = session.execute(text(f"""
                     SELECT COALESCE(SUM(pnl), 0)
-                    FROM alpatrade.trades
+                    FROM assethero.trades
                     WHERE trade_type = 'paper'
                       AND pnl IS NOT NULL
                       {user_filter}

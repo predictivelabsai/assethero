@@ -26,7 +26,13 @@ from engine.web.layout import page  # noqa: E402
 from engine.web import landing  # noqa: E402
 import verticals.equities.routes as equities  # noqa: E402
 
-app, rt = fast_app(pico=False)
+app, rt = fast_app(
+    pico=False,
+    # Stable session secret so cookies survive restarts / multiple instances
+    # (without this, FastHTML regenerates a key per process and logs everyone out).
+    secret_key=os.getenv("SESSION_SECRET", "assethero-dev-secret-change-me"),
+    static_path="static",
+)
 
 # --------------------------------------------------------------- Google OAuth
 # Optional — gracefully disabled unless GOOGLE_CLIENT_ID/SECRET are set.
@@ -276,4 +282,5 @@ equities.register(app, rt, current_user)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT") or os.getenv("ASSETHERO_WEB_PORT") or "5001")
-    serve(host="0.0.0.0", port=port)
+    _prod = os.getenv("ENVIRONMENT", "").lower() == "production"
+    serve(host="0.0.0.0", port=port, reload=not _prod)

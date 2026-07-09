@@ -38,7 +38,7 @@ def show_equity_curve(run_id: str = "", trade_type: str = "",
                     where.append("user_id = :user_id")
                     bind["user_id"] = user_id
                 row = session.execute(
-                    text(f"SELECT run_id FROM alpatrade.runs WHERE {' AND '.join(where)} ORDER BY created_at DESC LIMIT 1"),
+                    text(f"SELECT run_id FROM assethero.runs WHERE {' AND '.join(where)} ORDER BY created_at DESC LIMIT 1"),
                     bind,
                 ).fetchone()
                 if not row:
@@ -46,7 +46,7 @@ def show_equity_curve(run_id: str = "", trade_type: str = "",
                 rid = str(row[0])
             elif len(rid) < 36:
                 row = session.execute(
-                    text("SELECT run_id FROM alpatrade.runs WHERE CAST(run_id AS TEXT) LIKE :prefix ORDER BY created_at DESC LIMIT 1"),
+                    text("SELECT run_id FROM assethero.runs WHERE CAST(run_id AS TEXT) LIKE :prefix ORDER BY created_at DESC LIMIT 1"),
                     {"prefix": f"{rid}%"},
                 ).fetchone()
                 if not row:
@@ -54,7 +54,7 @@ def show_equity_curve(run_id: str = "", trade_type: str = "",
                 rid = str(row[0])
 
             run_row = session.execute(
-                text("SELECT config FROM alpatrade.runs WHERE run_id = :rid"),
+                text("SELECT config FROM assethero.runs WHERE run_id = :rid"),
                 {"rid": rid},
             ).fetchone()
             initial_capital = 10000.0
@@ -65,7 +65,7 @@ def show_equity_curve(run_id: str = "", trade_type: str = "",
             trades = session.execute(
                 text("""
                     SELECT exit_time, capital_after
-                    FROM alpatrade.trades
+                    FROM assethero.trades
                     WHERE run_id = :rid AND exit_time IS NOT NULL AND capital_after IS NOT NULL
                     ORDER BY exit_time ASC
                 """),

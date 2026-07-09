@@ -239,7 +239,7 @@ def list_user_accounts() -> str:
             result = session.execute(
                 text("""
                     SELECT ua.account_name, ua.account_id, ua.created_at
-                    FROM alpatrade.user_accounts ua
+                    FROM assethero.user_accounts ua
                     WHERE ua.is_active = TRUE
                     ORDER BY ua.created_at ASC
                     LIMIT 20
@@ -306,7 +306,7 @@ def show_recent_trades(limit: int = 20, trade_type: str = "") -> str:
                 text(f"""
                     SELECT symbol, direction, shares, entry_price, exit_price,
                            pnl, pnl_pct, trade_type
-                    FROM alpatrade.trades
+                    FROM assethero.trades
                     {where}
                     ORDER BY created_at DESC LIMIT :lim
                 """),
@@ -369,7 +369,7 @@ def show_recent_runs(limit: int = 20) -> str:
             result = session.execute(
                 text("""
                     SELECT run_id, mode, strategy, status, started_at
-                    FROM alpatrade.runs
+                    FROM assethero.runs
                     ORDER BY created_at DESC LIMIT :lim
                 """),
                 {"lim": limit},
@@ -1921,7 +1921,7 @@ def get(run_id: str, session):
         with pool.get_session() as db:
             # Fetch run info
             run = db.execute(
-                text("SELECT run_id, mode, strategy, status, started_at, completed_at FROM alpatrade.runs WHERE run_id = :rid"),
+                text("SELECT run_id, mode, strategy, status, started_at, completed_at FROM assethero.runs WHERE run_id = :rid"),
                 {"rid": run_id},
             ).fetchone()
 
@@ -1932,13 +1932,13 @@ def get(run_id: str, session):
             summary = db.execute(
                 text("""SELECT sharpe_ratio, total_return, annualized_return, total_pnl,
                                win_rate, total_trades, max_drawdown
-                        FROM alpatrade.backtest_summaries WHERE run_id = :rid LIMIT 1"""),
+                        FROM assethero.backtest_summaries WHERE run_id = :rid LIMIT 1"""),
                 {"rid": run_id},
             ).fetchone()
 
             # Fetch trades count
             trade_count = db.execute(
-                text("SELECT count(*) FROM alpatrade.trades WHERE run_id = :rid"),
+                text("SELECT count(*) FROM assethero.trades WHERE run_id = :rid"),
                 {"rid": run_id},
             ).scalar() or 0
 
@@ -2330,7 +2330,7 @@ def profile_keys_remove(session, account_id: str = ""):
         with pool.get_session() as db:
             db.execute(
                 text("""
-                    UPDATE alpatrade.user_accounts
+                    UPDATE assethero.user_accounts
                     SET is_active = FALSE, updated_at = NOW()
                     WHERE account_id = :account_id AND user_id = :user_id
                 """),

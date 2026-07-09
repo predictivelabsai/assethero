@@ -211,8 +211,8 @@ async def v2_runs(
                 SELECT r.run_id, r.mode, r.strategy, r.status,
                        r.started_at, r.completed_at,
                        bs.params->>'strategy_slug' AS strategy_slug
-                FROM alpatrade.runs r
-                LEFT JOIN alpatrade.backtest_summaries bs
+                FROM assethero.runs r
+                LEFT JOIN assethero.backtest_summaries bs
                     ON bs.run_id = r.run_id AND bs.is_best = true
                 {where_sql}
                 ORDER BY r.created_at DESC
@@ -268,7 +268,7 @@ async def v2_trades(
                        entry_time, exit_time, entry_price, exit_price,
                        target_price, stop_price, hit_target, hit_stop,
                        pnl, pnl_pct, total_fees, reason
-                FROM alpatrade.trades
+                FROM assethero.trades
                 {where_sql}
                 ORDER BY created_at DESC
                 LIMIT :lim
@@ -366,7 +366,7 @@ async def v2_pnl(run_id: str, user: Optional[Dict] = Depends(get_current_user)):
             run_bind["user_id"] = uid
 
         run_row = session.execute(
-            text(f"SELECT mode, strategy, status FROM alpatrade.runs "
+            text(f"SELECT mode, strategy, status FROM assethero.runs "
                  f"WHERE run_id = :run_id{user_filter}"),
             run_bind,
         ).fetchone()
@@ -377,7 +377,7 @@ async def v2_pnl(run_id: str, user: Optional[Dict] = Depends(get_current_user)):
         # Trades
         trades = session.execute(
             text("SELECT symbol, pnl, pnl_pct, total_fees, exit_time "
-                 "FROM alpatrade.trades WHERE run_id = :run_id "
+                 "FROM assethero.trades WHERE run_id = :run_id "
                  "ORDER BY exit_time ASC NULLS LAST"),
             {"run_id": run_id},
         ).fetchall()
@@ -385,7 +385,7 @@ async def v2_pnl(run_id: str, user: Optional[Dict] = Depends(get_current_user)):
         # Summary metrics
         summary = session.execute(
             text("SELECT sharpe_ratio, total_return, total_pnl, win_rate "
-                 "FROM alpatrade.backtest_summaries "
+                 "FROM assethero.backtest_summaries "
                  "WHERE run_id = :run_id AND is_best = true LIMIT 1"),
             {"run_id": run_id},
         ).fetchone()
@@ -503,7 +503,7 @@ async def v2_positions(
                        current_price, market_value, unrealized_pnl,
                        unrealized_pnl_pct, cost_basis, status,
                        opened_at, closed_at
-                FROM alpatrade.positions
+                FROM assethero.positions
                 {where_sql}
                 ORDER BY created_at DESC
                 LIMIT :lim
@@ -645,7 +645,7 @@ async def v2_status(user: Optional[Dict] = Depends(get_current_user)):
                 bind["user_id"] = str(uid)
             row = session.execute(
                 text(f"SELECT run_id, mode, status, started_at "
-                     f"FROM alpatrade.runs{user_filter} "
+                     f"FROM assethero.runs{user_filter} "
                      f"ORDER BY created_at DESC LIMIT 1"),
                 bind,
             ).fetchone()

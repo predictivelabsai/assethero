@@ -84,15 +84,15 @@ class ReportAgent:
                         -- Data period (from trades)
                         td.data_start,
                         td.data_end
-                    FROM alpatrade.runs r
-                    LEFT JOIN alpatrade.backtest_summaries bs
+                    FROM assethero.runs r
+                    LEFT JOIN assethero.backtest_summaries bs
                         ON bs.run_id = r.run_id AND bs.is_best = true
                     LEFT JOIN (
                         SELECT run_id,
                                COALESCE(SUM(pnl), 0)                        AS paper_pnl,
                                COUNT(*)                                       AS paper_trades,
                                COUNT(*) FILTER (WHERE pnl > 0)               AS paper_wins
-                        FROM alpatrade.trades
+                        FROM assethero.trades
                         WHERE trade_type = 'paper'
                         GROUP BY run_id
                     ) pt ON pt.run_id = r.run_id AND r.mode = 'paper'
@@ -100,7 +100,7 @@ class ReportAgent:
                         SELECT run_id,
                                MIN(COALESCE(entry_time, created_at)) AS data_start,
                                MAX(COALESCE(exit_time, entry_time, created_at)) AS data_end
-                        FROM alpatrade.trades
+                        FROM assethero.trades
                         GROUP BY run_id
                     ) td ON td.run_id = r.run_id
                     {where_sql}
@@ -185,7 +185,7 @@ class ReportAgent:
             sql = """
                 SELECT run_id, mode, strategy, status,
                        config, started_at, completed_at
-                FROM alpatrade.runs
+                FROM assethero.runs
                 WHERE run_id LIKE :prefix
             """
             bind = {"prefix": run_id + "%"}
@@ -278,7 +278,7 @@ class ReportAgent:
                         SUM(bs.total_trades)       AS total_trades,
                         COUNT(*)                   AS total_runs,
                         AVG(bs.total_pnl)          AS avg_pnl
-                    FROM alpatrade.backtest_summaries bs
+                    FROM assethero.backtest_summaries bs
                     {where_sql}
                     GROUP BY bs.strategy_slug
                     ORDER BY avg_ann_return DESC
@@ -337,8 +337,8 @@ class ReportAgent:
                         COUNT(t.*) AS total_trades,
                         COUNT(t.*) FILTER (WHERE t.pnl > 0) AS wins,
                         COUNT(DISTINCT r.run_id) AS total_runs
-                    FROM alpatrade.runs r
-                    LEFT JOIN alpatrade.trades t ON t.run_id = r.run_id AND t.trade_type = 'paper'
+                    FROM assethero.runs r
+                    LEFT JOIN assethero.trades t ON t.run_id = r.run_id AND t.trade_type = 'paper'
                     {where_sql}
                     GROUP BY r.strategy_slug
                     ORDER BY total_pnl DESC
@@ -377,7 +377,7 @@ class ReportAgent:
             text("""
                 SELECT total_return, total_pnl, sharpe_ratio, max_drawdown,
                        annualized_return, win_rate, total_trades, strategy_slug
-                FROM alpatrade.backtest_summaries
+                FROM assethero.backtest_summaries
                 WHERE run_id = :run_id AND is_best = true
             """),
             {"run_id": run_id},
@@ -387,7 +387,7 @@ class ReportAgent:
         tp = session.execute(
             text("""
                 SELECT MIN(COALESCE(entry_time, created_at)), MAX(COALESCE(exit_time, entry_time, created_at))
-                FROM alpatrade.trades WHERE run_id = :run_id
+                FROM assethero.trades WHERE run_id = :run_id
             """),
             {"run_id": run_id},
         ).fetchone()
@@ -436,7 +436,7 @@ class ReportAgent:
         rows = session.execute(
             text("""
                 SELECT pnl, pnl_pct, capital_after
-                FROM alpatrade.trades
+                FROM assethero.trades
                 WHERE run_id = :run_id AND trade_type = 'paper'
                 ORDER BY created_at
             """),
@@ -447,7 +447,7 @@ class ReportAgent:
         tp = session.execute(
             text("""
                 SELECT MIN(COALESCE(entry_time, created_at)), MAX(COALESCE(exit_time, entry_time, created_at))
-                FROM alpatrade.trades WHERE run_id = :run_id
+                FROM assethero.trades WHERE run_id = :run_id
             """),
             {"run_id": run_id},
         ).fetchone()

@@ -29,14 +29,14 @@ def save_conversation(thread_id: str, user_id: Optional[str] = None,
     with pool.get_session() as session:
         if title is not None:
             session.execute(text("""
-                INSERT INTO alpatrade.chat_conversations (thread_id, user_id, title)
+                INSERT INTO assethero.chat_conversations (thread_id, user_id, title)
                 VALUES (:tid, :uid, :title)
                 ON CONFLICT (thread_id) DO UPDATE
                 SET title = :title, updated_at = NOW()
             """), {"tid": thread_id, "uid": user_id, "title": title})
         else:
             session.execute(text("""
-                INSERT INTO alpatrade.chat_conversations (thread_id, user_id, title)
+                INSERT INTO assethero.chat_conversations (thread_id, user_id, title)
                 VALUES (:tid, :uid, 'New chat')
                 ON CONFLICT (thread_id) DO UPDATE
                 SET updated_at = NOW()
@@ -50,7 +50,7 @@ def save_message(thread_id: str, role: str, content: str,
     mid = message_id or str(uuid.uuid4())
     with pool.get_session() as session:
         session.execute(text("""
-            INSERT INTO alpatrade.chat_messages (thread_id, message_id, role, content, metadata)
+            INSERT INTO assethero.chat_messages (thread_id, message_id, role, content, metadata)
             VALUES (:tid, :mid, :role, :content, :meta)
         """), {
             "tid": thread_id,
@@ -67,7 +67,7 @@ def load_conversation_messages(thread_id: str) -> list[dict]:
     with pool.get_session() as session:
         rows = session.execute(text("""
             SELECT message_id, role, content, metadata, created_at
-            FROM alpatrade.chat_messages
+            FROM assethero.chat_messages
             WHERE thread_id = :tid
             ORDER BY created_at ASC
         """), {"tid": thread_id}).fetchall()
@@ -90,10 +90,10 @@ def list_conversations(user_id: Optional[str] = None, limit: int = 20) -> list[d
         if user_id:
             rows = session.execute(text("""
                 SELECT c.thread_id, c.title, c.updated_at,
-                       (SELECT content FROM alpatrade.chat_messages m
+                       (SELECT content FROM assethero.chat_messages m
                         WHERE m.thread_id = c.thread_id AND m.role = 'user'
                         ORDER BY m.created_at ASC LIMIT 1) AS first_msg
-                FROM alpatrade.chat_conversations c
+                FROM assethero.chat_conversations c
                 WHERE c.user_id = :uid
                 ORDER BY c.updated_at DESC
                 LIMIT :lim
@@ -101,10 +101,10 @@ def list_conversations(user_id: Optional[str] = None, limit: int = 20) -> list[d
         else:
             rows = session.execute(text("""
                 SELECT c.thread_id, c.title, c.updated_at,
-                       (SELECT content FROM alpatrade.chat_messages m
+                       (SELECT content FROM assethero.chat_messages m
                         WHERE m.thread_id = c.thread_id AND m.role = 'user'
                         ORDER BY m.created_at ASC LIMIT 1) AS first_msg
-                FROM alpatrade.chat_conversations c
+                FROM assethero.chat_conversations c
                 WHERE c.user_id IS NULL
                 ORDER BY c.updated_at DESC
                 LIMIT :lim
@@ -125,5 +125,5 @@ def delete_conversation(thread_id: str):
     pool = _get_pool()
     with pool.get_session() as session:
         session.execute(text("""
-            DELETE FROM alpatrade.chat_conversations WHERE thread_id = :tid
+            DELETE FROM assethero.chat_conversations WHERE thread_id = :tid
         """), {"tid": thread_id})
