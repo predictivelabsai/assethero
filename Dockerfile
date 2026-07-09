@@ -17,11 +17,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV PYTHONUNBUFFERED=1 \
-    PORT=8080
-EXPOSE 8080
+    PORT=8090
+EXPOSE 8090
 
 # Health check so Coolify's zero-downtime deploy flips the new container green.
+# Reads $PORT so it tracks whatever port compose sets.
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/')" || exit 1
+    CMD python -c "import os,urllib.request; urllib.request.urlopen('http://localhost:'+os.getenv('PORT','8090')+'/')" || exit 1
 
 CMD ["python", "app.py"]

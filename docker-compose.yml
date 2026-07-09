@@ -9,10 +9,13 @@ services:
     build: .
     container_name: assethero
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    # No host `ports:` publish — Coolify's proxy routes assethero.chat to the
+    # container over the internal network via the exposed port. Publishing a
+    # host port collided with an existing service on 8080.
+    expose:
+      - "8090"
     environment:
-      - PORT=8080
+      - PORT=8090
       - ENVIRONMENT=production
       - SESSION_SECRET=${SESSION_SECRET:-}
       - DATABASE_URL=${DATABASE_URL:-}
@@ -26,7 +29,7 @@ services:
       - XAI_API_KEY=${XAI_API_KEY:-}
       - EODHD_API_KEY=${EODHD_API_KEY:-}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/')"]
+      test: ["CMD", "python", "-c", "import os,urllib.request; urllib.request.urlopen('http://localhost:'+os.getenv('PORT','8090')+'/')"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -1,7 +1,7 @@
 # Deploying AssetHero (web) — Coolify
 
 The unified web app is `app.py` (FastHTML). It binds to `$PORT` (falls back to
-8080) on `0.0.0.0`, so it runs unchanged behind Coolify, Cloud Run, or plain Docker.
+8090) on `0.0.0.0`, so it runs unchanged behind Coolify, Cloud Run, or plain Docker.
 The marketing landing (`/`, `/asset-classes`, `/how-it-works`, `/pricing`,
 `/contact`) is **database-free** and serves immediately; login and the in-app
 chat shell activate once the secrets below are set.
@@ -12,7 +12,7 @@ chat shell activate once the secrets below are set.
 2. **Build Pack: Dockerfile** — Coolify uses the repo-root `Dockerfile`
    (builds `app.py`; the other `Dockerfile.*` files are for the API/AG-UI/legacy
    web and are ignored).
-3. **Port**: set *Ports Exposes* to `8080` (the app reads `$PORT`; Coolify injects
+3. **Port**: set *Ports Exposes* to `8090` (the app reads `$PORT`; Coolify injects
    it and maps the domain to it).
 4. **Environment variables** (see `scripts/secrets.env.example`):
 
@@ -35,8 +35,8 @@ Credentials), then set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redeploy.
 
 ```bash
 docker build -t assethero-web .
-docker run --rm -p 8080:8080 -e PORT=8080 assethero-web
-# open http://localhost:8080
+docker run --rm -p 8090:8090 -e PORT=8090 assethero-web
+# open http://localhost:8090
 ```
 
 ## GCP Cloud Run (alternative)
