@@ -265,3 +265,34 @@ CREATE TABLE IF NOT EXISTS assethero.chat_messages (
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_chat_msg_thread ON assethero.chat_messages(thread_id, created_at);
+
+-- ============================================================================
+-- Integrations (per-user, encrypted API keys for brokers/exchanges/data)
+-- ============================================================================
+-- One row per (user, provider). `config_enc` is a Fernet-encrypted JSON blob of
+-- {field: value} (e.g. {"api_key": "...", "api_secret": "..."}), so no plaintext
+-- key ever touches disk. `provider` matches engine/integrations.py PROVIDERS.
+CREATE TABLE IF NOT EXISTS assethero.user_integrations (
+    id          SERIAL PRIMARY KEY,
+    user_id     UUID NOT NULL REFERENCES assethero.users(user_id) ON DELETE CASCADE,
+    provider    VARCHAR(48) NOT NULL,               -- alpaca|kraken|okx|...|polymarket|eodhd|...
+    category    VARCHAR(16) NOT NULL DEFAULT 'trading',  -- trading|data
+    config_enc  BYTEA,                              -- Fernet( json {field:value} )
+    enabled     BOOLEAN NOT NULL DEFAULT TRUE,
+    status      VARCHAR(16) NOT NULL DEFAULT 'unknown', -- unknown|ok|error
+    last_tested TIMESTAMPTZ,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, provider)
+);
+CREATE INDEX IF NOT EXISTS idx_user_integrations_user ON assethero.user_integrations(user_id);
+
+DROP TRIGGER IF EXISTS trg_user_integrations_updated ON assethero.user_integrations;
+CREATE TRIGGER trg_user_integrations_updated BEFORE UPDATE ON assethero.user_integrations
+    FOR EACH ROW EXECUTE FUNCTION assethero.set_updated_at();
+
+-- Multi-asset discriminators on shared trading tables (idempotent adds).
+ALTER TABLE assethero.runs    ADD COLUMN IF NOT EXISTS venue VARCHAR(32);
+ALTER TABLE assethero.trades  ADD COLUMN IF NOT EXISTS vertical VARCHAR(32) NOT NULL DEFAULT 'equities';
+ALTER TABLE assethero.trades  ADD COLUMN IF NOT EXISTS venue VARCHAR(32);
+CREATE INDEX IF NOT EXISTS idx_trades_vertical ON assethero.trades(vertical);

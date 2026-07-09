@@ -26,3 +26,15 @@ pydantic-ai
 ag-ui-protocol
 psutil
 authlib
+# crypto vertical (rl-agent-swarm)
+ccxt
+ta
+hyperliquid-python-sdk
+groq
+langchain-groq
+# prediction vertical (polytrade)
+py-clob-client
+# fx/macro vertical (macrohero)
+feedparser
+newspaper4k
+tavily-python

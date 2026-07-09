@@ -178,6 +178,28 @@ input,select{background:var(--bg);border:1px solid var(--line);color:var(--text)
 .notice{padding:.6rem .8rem;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:1rem}
 .err{border-color:var(--danger);color:#ffd7d7}
 
+.appgrid.two{grid-template-columns:230px 1fr}
+.settings{padding:1.4rem 1.6rem;overflow-y:auto}
+.settings h2{font-size:1.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:.2rem}
+.settings .sub{color:var(--muted);margin-bottom:1.4rem}
+.settings .navhead2{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+  font-weight:700;margin:1.4rem 0 .7rem}
+.intgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+.intcard{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:1rem}
+.intcard .hd{display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem}
+.intcard .hd .nm{font-weight:700}
+.intcard .hd .st{margin-left:auto;font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;
+  padding:.1rem .45rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.intcard .hd .st.ok{color:#111;background:var(--accent-2);border-color:var(--accent-2)}
+.intcard .hd .st.error{color:#fff;background:var(--danger);border-color:var(--danger)}
+.intcard .hd .st.set{color:var(--accent);border-color:var(--accent)}
+.intcard .help{color:var(--muted);font-size:.8rem;margin-bottom:.7rem}
+.intcard label{display:block;font-size:.72rem;color:var(--muted);margin:.5rem 0 .2rem}
+.intcard input{width:100%}
+.intcard .acts{display:flex;gap:.5rem;margin-top:.8rem}
+.flash{padding:.5rem .8rem;border-radius:8px;background:var(--panel-2);border:1px solid var(--accent-2);
+  color:var(--accent-2);margin-bottom:1rem;font-size:.85rem}
+
 @media (max-width:1100px){.appgrid{grid-template-columns:200px 1fr}.workspace{display:none}}
 @media (max-width:760px){.appgrid{grid-template-columns:1fr}.leftpane{display:none}}
 """
@@ -299,6 +321,11 @@ def left_pane(active_vertical: str, nav_items, active_nav: str):
     from engine.web.commands import MAIN_NAV
     items = [Li(A(label, href=href, cls=("active" if href == active_nav else None)))
              for label, href in nav_items]
+    admin = Nav(Ul(
+        Li(A("🔌 Integrations", href="/admin/integrations",
+             cls=("active" if active_nav == "/admin/integrations" else None))),
+        Li(A("👤 Profile", href="/profile", cls=("active" if active_nav == "/profile" else None))),
+    ), cls="leftnav")
     return Div(
         Button("＋ New chat", cls="newchat", type="button", onclick="newChat()"),
         Div("History", cls="navhead"),
@@ -307,6 +334,8 @@ def left_pane(active_vertical: str, nav_items, active_nav: str):
         Nav(Ul(*items), cls="leftnav"),
         Div("Menu", cls="navhead"),
         command_groups(MAIN_NAV),
+        Div("Admin", cls="navhead"),
+        admin,
         cls="leftpane",
     )
 
@@ -370,6 +399,26 @@ def page(active_vertical: str, nav_items, *content, user: Optional[dict] = None,
                 chat_pane(active_vertical),
                 workspace,
                 cls="appgrid",
+            ),
+            id="ah-root", data_vertical=active_vertical,
+        ),
+    )
+
+
+def settings_page(active_vertical: str, nav_items, *content, user: Optional[dict] = None,
+                  active_nav: str = "", title: str = "AssetHero"):
+    """Full-width settings shell: topbar + left nav + wide content (no chat/workspace)."""
+    return (
+        Title(title),
+        *HEAD_META,
+        Style(LAYOUT_CSS),
+        Script(CHAT_JS),
+        Div(
+            topbar(active_vertical, user),
+            Div(
+                left_pane(active_vertical, nav_items, active_nav),
+                Main(*content, cls="settings"),
+                cls="appgrid two",
             ),
             id="ah-root", data_vertical=active_vertical,
         ),

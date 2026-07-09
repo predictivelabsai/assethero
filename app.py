@@ -276,6 +276,11 @@ for _v, _l in [("crypto", "Crypto"), ("fx", "FX / Macro"),
     rt(f"/{_v}")(_make_stub(_v, _l))
 
 
+# ---------------------------------------------------------- admin / integrations
+from engine.web import admin as _admin  # noqa: E402
+_admin.register(app, rt, current_user)
+
+
 # --------------------------------------------------------------- equities vertical
 equities.register(app, rt, current_user)
 
